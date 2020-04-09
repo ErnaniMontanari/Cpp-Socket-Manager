@@ -16,8 +16,10 @@
 #define SOCK_FD_ERROR "Creating socket file descriptor falied"
 #define BINDING_ERROR "Socket bind falied"
 #define RECV_ERROR "Socket recv falied"
+#define SEND_ERROR "Socket send falied"
 #define LISTENING_ERROR "Socket listen falied"
 #define LISTENER_ERROR "Socket can't listener"
+#define WAITCLIENT_ERROR "Socket can't wait client"
 #define SOCK_CREATED "Socket is created, can't create"
 #define LISTEN_BACKLOG 50
 #define SOCK_BUFF_NAME 1024
@@ -30,13 +32,13 @@ class SockManager
 {
     public:
         //define as variaveis
-        SockManager(int domain, int type, int protocol, int port, int task);
+        SockManager(int domain, int type, int protocol, unsigned int ip, int port, int task, char *myname);
 
         //encerra o socket
         ~SockManager();
 
         //inicia o socket e comeca a receber conexoes
-        int create(Socket *sock);
+        int create(Server *sock);
 
         int startListener(int maxclients, Client* clientlist[]);
 
@@ -50,8 +52,10 @@ class SockManager
         int domain;
         int type;
         int protocol;
+        unsigned int ip;
         int port;
         int task;
+        char *myname;
 
         bool listener;
         bool sock_created;
@@ -60,8 +64,10 @@ class SockManager
 
         struct sockaddr_in address;
 
+        int acceptClient(char *clientname);
+
+        int connectToServer(Server *sock);
         int createServer();
-        int connectToServer(Socket *sock);
 };
 
 #endif
