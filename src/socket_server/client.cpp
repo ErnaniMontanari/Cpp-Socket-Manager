@@ -1,11 +1,11 @@
 #include "client.h"
 
-Client::Client(int sock_fd, char* ip_address, int port, char *name) : Socket(sock_fd, ip_address, port)
+Client::Client(int fd, char* ip, int pt, char *nm) : Socket(fd, ip, pt)
 {
-    this->name = name;
+    this->name = nm;
 }
 
 char* Client::getName()
-{
-    return name;
+{cout << name << endl;
+    return this->name;
 }

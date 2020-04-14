@@ -24,7 +24,7 @@ class Socket
         ~Socket();
 
         int sendd(const char *msg);
-        int recvv(char *msg);
+        int recvv(char *msg, int lenght);
 
         int getSock_fd();
         char* get_IPAddress();

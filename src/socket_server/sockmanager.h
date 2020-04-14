@@ -21,6 +21,8 @@
 #define LISTENER_ERROR "Socket can't listener"
 #define WAITCLIENT_ERROR "Socket can't wait client"
 #define SOCK_CREATED "Socket is created, can't create"
+#define ERROR_ACCEPT_CLIENT "Error to accept client"
+#define TASK_ERROR "Task error"
 #define LISTEN_BACKLOG 50
 #define SOCK_BUFF_NAME 1024
 
@@ -38,11 +40,11 @@ class SockManager
         ~SockManager();
 
         //inicia o socket e comeca a receber conexoes
-        int create(Server *sock);
+        int create(Server **sock);
 
-        int startListener(int maxclients, Client* clientlist[]);
+        int startListener(int maxclients, Client** clientlist[]);
 
-        int waitClient(Client* client);
+        int waitClient(Client** client);
 
         // para de receber connexoes ao socket
         int stop();
@@ -66,7 +68,7 @@ class SockManager
 
         int acceptClient(char *clientname);
 
-        int connectToServer(Server *sock);
+        int connectToServer(Server **sock);
         int createServer();
 };
 

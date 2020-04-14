@@ -16,14 +16,7 @@ SockManager::SockManager(int domain, int type, int protocol, unsigned int ip, in
     //define os valores da estrutura sockaddr_in
     address.sin_family = AF_INET; 
     address.sin_port = htons(port);
-    if(ip > 0)
-    {
-        address.sin_addr.s_addr = ip; 
-    }
-    else
-    {
-        address.sin_addr.s_addr = INADDR_ANY; 
-    }
+    address.sin_addr.s_addr = ip > 0 ? ip : INADDR_ANY; 
 }
 
 SockManager::~SockManager()
@@ -31,7 +24,7 @@ SockManager::~SockManager()
     close(socketFD);
 }
 
-int SockManager::create(Server *sock) //if create a server passe parametter nullptr
+int SockManager::create(Server **sock) //if create a server passe parametter nullptr
 {
     //verefica se ja foi criado com sucesso
     if(sock_created)
@@ -41,7 +34,7 @@ int SockManager::create(Server *sock) //if create a server passe parametter null
     }
 
     //cria o socket
-    socketFD = socket(domain, type, protocol); 
+    socketFD = socket(AF_INET, SOCK_STREAM, 0); 
     if(!(socketFD > 0))
     {
         perror(SOCK_FD_ERROR);
@@ -61,18 +54,23 @@ int SockManager::create(Server *sock) //if create a server passe parametter null
     }
     else if(task == CONNECT_TO_SERVER)
     {
-        int var = connectToServer(sock);
+        int var = connectToServer(&(*sock));
         if(var < 0)
         {
             return var;
         }
+    }
+    else
+    {
+        perror(TASK_ERROR);
+        return -1;
     }
 
     sock_created = true;
     return 0;
 }
 
-int SockManager::startListener(int maxclients, Client* clientlist[])
+int SockManager::startListener(int maxclients, Client** clientlist[])
 {
     if(task == CONNECT_TO_SERVER)
     {
@@ -94,9 +92,9 @@ int SockManager::startListener(int maxclients, Client* clientlist[])
 
         for(int i = 0; i < maxclients; i++)
         {
-            if(clientlist[i] == 0x00000)
+            if(*clientlist[i] == 0x00000)
             {
-                clientlist[i] = new Client(sockclient, inet_ntoa(address.sin_addr), (int) ntohs(address.sin_port), nameclient);
+                *clientlist[i] = new Client(sockclient, inet_ntoa(address.sin_addr), (int) ntohs(address.sin_port), nameclient);
                 if(i == (maxclients -1))
                 {
                     listener = false;
@@ -109,7 +107,7 @@ int SockManager::startListener(int maxclients, Client* clientlist[])
     return 0;
 }
 
-int SockManager::waitClient(Client* client)
+int SockManager::waitClient(Client **client)
 {
     if(task == CONNECT_TO_SERVER)
     {
@@ -123,8 +121,8 @@ int SockManager::waitClient(Client* client)
     {
         return sockclient;
     }
-
-    client = new Client(sockclient, inet_ntoa(address.sin_addr), (int) ntohs(address.sin_port), nameclient);
+    
+    *client = new Client(sockclient, inet_ntoa(address.sin_addr), (int) ntohs(address.sin_port), nameclient);
     return 0;
 }
 
@@ -133,7 +131,7 @@ int SockManager::acceptClient(char* clientname)
     int sockclient = accept(socketFD, (struct sockaddr *) &address, (socklen_t*)&address);
     if(sockclient < 0)
     {
-        cout << "ERRO AO ACEITAR CLIENTE" << endl;
+        perror(ERROR_ACCEPT_CLIENT);
         return sockclient;
     }
 
@@ -152,11 +150,11 @@ int SockManager::acceptClient(char* clientname)
         perror(RECV_ERROR);
         return name;
     }
-
+    
     return sockclient;
 }
 
-int SockManager::connectToServer(Server *sock)
+int SockManager::connectToServer(Server **sock)
 {
     //conecta-se ao servidor
     int connected = connect(socketFD, (const sockaddr *) &address, sizeof(address));
@@ -183,7 +181,7 @@ int SockManager::connectToServer(Server *sock)
     }
 
     //define o ponteiro como uma instancia do servidor conectado
-    sock = new Server(socketFD, inet_ntoa(address.sin_addr), (int) ntohs(address.sin_port), sv_name);
+    *sock = new Server(socketFD, inet_ntoa(address.sin_addr), (int) ntohs(address.sin_port), sv_name);
 
     return 0;
 }
